@@ -1,0 +1,20 @@
+{
+    "name": "ebene7/php-date",
+    "description": "E7 PHP Library",
+    "homepage": "https://github.com/ebene7/php-lib",
+    "authors": [
+        {
+            "name": "Daniel Barty",
+            "email": "daniel@ebene7.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.4.0"
+    },
+    "autoload": {
+        "psr-4": {"E7\\": "src/E7"}
+    },
+    "autoload-dev": {
+        "psr-4": {"E7\\": "tests/E7"}
+    }
+}
