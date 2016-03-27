@@ -1,9 +1,22 @@
-# E7 PHP Library
+E7 PHP Library
+======
 
-## Date
+Installation
+------------
+The best way to install ebene7/php-lib is using  [Composer](http://getcomposer.org/):
+
+```sh
+$ composer require ebene7/php-lib
+```
+
+Date
+----
+
 * DateRange
 
-## Iterator
+Iterator
+--------
+
 * LeafIterator
 * PermutationIterator
 * WalkableIterator
