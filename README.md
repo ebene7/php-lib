@@ -19,4 +19,5 @@ Iterator
 
 * LeafIterator
 * PermutationIterator
+* ProxyCallIterator
 * WalkableIterator
