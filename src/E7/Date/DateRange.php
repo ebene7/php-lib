@@ -19,7 +19,7 @@ class DateRange extends AbstractRange implements DateRangeInterface
 
     /**
      * Constructor
-     * 
+     *
      * @param   \DateTimeInterface|string $from
      * @param   \DateTimeInterface|string $to
      */
@@ -27,7 +27,7 @@ class DateRange extends AbstractRange implements DateRangeInterface
     {
         $from = $this->prepareDate($from, RangeInterface::TYPE_FROM);
         $to = $this->prepareDate($to, RangeInterface::TYPE_TO);
-        
+
         $this->from = min($from, $to);
         $this->to = max($from, $to);
     }
@@ -36,7 +36,7 @@ class DateRange extends AbstractRange implements DateRangeInterface
     {
         return '[' .  $this->getFrom()->format('Y-m-d') . '-' . $this->getTo()->format('Y-m-d') . ']';
     }
-    
+
     /**
      * @return  \DateTimeInterface
      */
@@ -54,23 +54,41 @@ class DateRange extends AbstractRange implements DateRangeInterface
     }
 
     /**
-     * @return  \DateTimeInterface
+     * {@inheritDoc}
      */
-    public function getLowerFrom()
+    public function modifyValue($value, $modifier)
     {
-        $from = clone $this->getFrom();
-        return $from->modify('-1 day');
+        $value = $this->prepareDate($value);
+        if (!$value instanceof \DateTimeInterface) {
+            throw new \InvalidArgumentException('Parameter 1 must be an instance of \DateTimeInterface');
+        }
+
+        $value = clone $value;
+
+        switch($modifier) {
+            case self::MODIFIER_LOWER:
+                return $value->modify('-1 day');
+            case self::MODIFIER_HIGHER:
+                return $value->modify('+1 day');
+            default:
+                throw new \InvalidArgumentException("Unknown modifier '$modifier'");
+        }
     }
 
     /**
-     * @return  \DateTimeInterface
+     * {@inheritDoc}
      */
-    public function getHigherTo()
+    public function valueToString($value)
     {
-        $to = clone $this->getTo();
-        return $to->modify('+1 day');
+        // @TODO
+        // - implement precision
+        // - outsource string conversion
+        if ($value instanceof \DateTimeInterface) {
+            return $value->format('Y-m-d');
+        }
+        return $value;
     }
-    
+
     /**
      * {@inheritDoc}
      */
@@ -78,11 +96,11 @@ class DateRange extends AbstractRange implements DateRangeInterface
     {
         $value = $this->prepareDate($value);
         if (!$value instanceof \DateTimeInterface) {
-            throw new \InvalidArgumentException('Value must be an instance of \DateTimeInterface');
+            throw new \InvalidArgumentException('Parameter 1 must be an instance of \DateTimeInterface');
         }
         return parent::contains($value);
     }
-    
+
     /**
      * {@inheritDoc}
      */
@@ -98,22 +116,22 @@ class DateRange extends AbstractRange implements DateRangeInterface
     public function checkCollision(RangeInterface $range)
     {
         if (!$range instanceof DateRangeInterface) {
-            throw new \InvalidArgumentException('Range must be an instance of \E7\Date\DateRangeInterface'); 
+            throw new \InvalidArgumentException('Range must be an instance of \E7\Date\DateRangeInterface');
         }
         return parent::checkCollision($range);
     }
-        
+
     /**
      * {@inheritDoc}
      */
     public function checkTouch(RangeInterface $range)
     {
         if (!$range instanceof DateRangeInterface) {
-            throw new \InvalidArgumentException('Range must be an instance of \E7\Date\DateRangeInterface'); 
+            throw new \InvalidArgumentException('Range must be an instance of \E7\Date\DateRangeInterface');
         }
         return parent::checkTouch($range);
     }
-    
+
     /**
      * @param   \DateTimeInterface|string $date
      * @param   string $type
@@ -123,7 +141,7 @@ class DateRange extends AbstractRange implements DateRangeInterface
     {
         // work internal with cloned object, because they will be modified
         $date = $date instanceof \DateTimeInterface ? clone $date : new \DateTime($date);
-        
+
         switch($type) {
             case RangeInterface::TYPE_FROM:
                 $date->setTime(0, 0, 0);
@@ -135,7 +153,7 @@ class DateRange extends AbstractRange implements DateRangeInterface
                 /* do nothing, relax */
                 break;
         }
-        
+
         return $date;
     }
 }

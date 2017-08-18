@@ -11,11 +11,11 @@ trait WalkableIteratorWalkTrait
     public function walk(callable $callback)
     {
         $results = [];
-        
-        foreach($this as $item) {
-            $results[] = call_user_func($callback, $item);
+
+        foreach($this as $key => $value) {
+            $results[] = call_user_func_array($callback, [$key, $value]);
         }
-        
+
         return $results;
     }
 }
