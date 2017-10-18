@@ -58,7 +58,7 @@ class LeafIterator implements \Iterator
     /**
      * Constructor
      *
-     * @param   \Iterator|array $inner
+     * @param   \Iterator|\IteratorAggregate|array $inner
      * @param   string $path
      * @param   boolean $asArray
      * @throws  \InvalidArgumentException
@@ -67,6 +67,10 @@ class LeafIterator implements \Iterator
     {
         if (is_array($inner)) {
             $inner = new \ArrayIterator($inner);
+        }
+
+        if ($inner instanceof \IteratorAggregate) {
+            $inner = $inner->getIterator();
         }
 
         if (!$inner instanceof \Iterator) {
@@ -248,6 +252,10 @@ class LeafIterator implements \Iterator
         // IteratorAggregate access
         if ($element instanceof \IteratorAggregate) {
             $iterator = $element->getIterator();
+        }
+
+        if ($iterator instanceof \IteratorAggregate) {
+            $iterator = $iterator->getIterator();
         }
 
         if (null === $iterator || !$iterator instanceof \Iterator) {
