@@ -2,16 +2,17 @@
 
 namespace E7\Date;
 
+use PHPUnit\Framework\TestCase;
 use E7\Utility\RangeInterface;
 
-class DateRangeTest extends \PHPUnit_Framework_TestCase
+class DateRangeTest extends TestCase
 {
     public function testInterfaces()
     {
         $range = new DateRange('now', 'now');
         $this->assertInstanceOf(RangeInterface::class, $range);
     }
-    
+
     /**
      * @dataProvider    providerConstructorAndFromToNormalisation
      * @param   array $parameters
@@ -25,7 +26,7 @@ class DateRangeTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($expected['from'], $range->getFrom()->format($format));
         $this->assertEquals($expected['to'], $range->getTo()->format($format));
     }
-    
+
     /**
      * @return  array
      */
@@ -61,6 +62,29 @@ class DateRangeTest extends \PHPUnit_Framework_TestCase
         ];
     }
 
+    public function testGetInterval()
+    {
+        $range = new DateRange('2018-01-01', '2018-01-11');
+        $interval = $range->getInterval();
+
+        $this->assertInstanceOf(\DateInterval::class, $interval);
+        $this->assertEquals(10, $interval->format('%a'));
+    }
+
+    public function testGetPeriod()
+    {
+        $range = new DateRange('2018-01-01', '2018-01-11');
+        $period = $range->getPeriod();
+
+        $count = 0;
+        foreach ($period as $day) {
+            $count++;
+        }
+
+        $this->assertInstanceOf(\DatePeriod::class, $period);
+        $this->assertEquals(11, $count);
+    }
+
     /**
      * @dataProvider    providerContains
      * @param   array $input
@@ -71,9 +95,9 @@ class DateRangeTest extends \PHPUnit_Framework_TestCase
         extract($input);
         /* @var $range \E7\Date\DateRange */
         /* @var $value \DateTime */
-        
+
         $result = $range->contains($value);
-        
+
         $this->assertInternalType('boolean', $result);
         $this->assertEquals($expected, $result);
     }
@@ -84,7 +108,7 @@ class DateRangeTest extends \PHPUnit_Framework_TestCase
     public function providerContains()
     {
         $range = new DateRange('2016-03-01', '2016-03-31');
-        
+
         return [
             /* one day before, expect false */
             [['range' => $range, 'value' => '2016-02-29'], false],
@@ -103,7 +127,7 @@ class DateRangeTest extends \PHPUnit_Framework_TestCase
             [['range' => $range, 'value' => new \DateTime('2016-04-01')], false],
         ];
     }
-    
+
 //    public function testEquals()
 //    {
 //    }
@@ -366,20 +390,20 @@ class DateRangeTest extends \PHPUnit_Framework_TestCase
      * @param   array $input
      * @param   array|null $expected
      */
-    public function testGetDifference()
-    {
-        $range1 = new DateRange('2016-03-01', '2016-03-31');
-        $range2 = new DateRange('2016-03-11', '2016-03-15');
-                
-        $result = $range1->getDifference($range2);
-       
-//        echo "\nIN $range1 $range2\n";
-//        foreach ($result as $range) {
-//            echo "$range\n";
-//        }
-        
-        
-    }
+//    public function testGetDifference()
+//    {
+//        $range1 = new DateRange('2016-03-01', '2016-03-31');
+//        $range2 = new DateRange('2016-03-11', '2016-03-15');
+//                
+//        $result = $range1->getDifference($range2);
+//       
+////        echo "\nIN $range1 $range2\n";
+////        foreach ($result as $range) {
+////            echo "$range\n";
+////        }
+//        
+//        
+//    }
     
     /**
      * @return  array
@@ -489,11 +513,82 @@ class DateRangeTest extends \PHPUnit_Framework_TestCase
     {
         $from = '2016-03-01';
         $to = '2016-03-31';
+        $value = 42;
+        $options = ['foo' => 'bar'];
         
-        $range = DateRange::create($from, $to);
+        $range = TestDateRange::create($from, $to, $value, $options);
         
-        $this->assertInstanceOf(DateRange::class, $range);
+        $this->assertInstanceOf(TestDateRange::class, $range);
         $this->assertEquals($from, $range->getFrom()->format('Y-m-d'));
         $this->assertEquals($to, $range->getTo()->format('Y-m-d'));
+        $this->assertEquals($value, $range->getValue());
+        $this->assertEquals($options, $range->getOptions());
+    }
+    
+    public function testAfterMergeCallback()
+    {
+        $range1 = new TestDateRange('2018-01-10', '2018-01-20', 5);
+        $range2 = new TestDateRange('2018-01-15', '2018-01-30', 10);
+        
+        $mergedRange = $range1->merge($range2);
+        
+        $this->assertNotSame($range1, $mergedRange);
+        $this->assertNotSame($range2, $mergedRange);
+        $this->assertInstanceOf(get_class($range1), $mergedRange);
+        $this->assertEquals('2018-01-10', $mergedRange->getFrom()->format('Y-m-d'));
+        $this->assertEquals('2018-01-30', $mergedRange->getTo()->format('Y-m-d'));
+        $this->assertEquals(15, $mergedRange->getValue());
+    }
+    
+}
+
+// classes for test
+class TestDateRange extends DateRange
+{
+    /** @var mixed */
+    private $value;
+    
+    /**
+     * Constructor
+     * 
+     * @param \DateTimeInterface $from
+     * @param \DateTimeInterface $to
+     * @param mixed $value
+     * @param array $options
+     */
+    public function __construct($from, $to, $value, array $options = [])
+    {
+        parent::__construct($from, $to, $options);
+        $this->value = $value;
+    }
+
+    /**
+     * Set value
+     * 
+     * @param  mixed $value
+     * @return TestDateRange
+     */
+    public function setValue($value)
+    {
+        $this->value = $value;
+        return $this;
+    }
+    
+    /**
+     * Get value
+     * 
+     * @return mixed
+     */
+    public function getValue()
+    {
+        return $this->value;
+    }
+        
+    /**
+     * {@inheritDoc}
+     */
+    protected function afterMerge($range1, $range2)
+    {
+        $this->value = $range1->value + $range2->value;
     }
 }

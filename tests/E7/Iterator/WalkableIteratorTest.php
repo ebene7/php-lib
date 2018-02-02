@@ -2,7 +2,9 @@
 
 namespace E7\Iterator;
 
-class WalkableIteratorTest extends \PHPUnit_Framework_TestCase
+use PHPUnit\Framework\TestCase;
+
+class WalkableIteratorTest extends TestCase
 {
     public function testImplementsIteratorInterface()
     {
@@ -23,4 +25,3 @@ class WalkableIteratorTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue(method_exists($iterator, 'walk'));
     }
 }
-

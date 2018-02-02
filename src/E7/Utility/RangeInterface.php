@@ -2,8 +2,9 @@
 
 namespace E7\Utility;
 
-use E7\ComparableInterface;
-
+/**
+ * Interface for ranges
+ */
 interface RangeInterface
 {
     const TYPE_FROM = 'from';
@@ -40,8 +41,9 @@ interface RangeInterface
     /**
      * Check if the value is between from and to
      * 
-     * @param   mixed $value
-     * @return  boolean
+     * @param  mixed $value
+     * @return boolean
+     * @throws \InvalidArgumentException
      */
     public function contains($value);
             

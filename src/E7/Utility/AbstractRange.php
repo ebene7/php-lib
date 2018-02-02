@@ -2,8 +2,38 @@
 
 namespace E7\Utility;
 
-abstract class AbstractRange implements RangeInterface
+use E7\Utility\Range\MergeableRangeInterface;
+
+/**
+ * Baseclass for ranges
+ */
+abstract class AbstractRange implements MergeableRangeInterface
 {
+    /** @var array */
+    private $options = [];
+
+    /**
+     * Set options
+     * 
+     * @param  array $options
+     * @return AbstractRange
+     */
+    public function setOptions(array $options)
+    {
+        $this->options = $options;
+        return $this;
+    }
+    
+    /**
+     * Get options
+     * 
+     * @return array
+     */
+    public function getOptions()
+    {
+        return $this->options;
+    }
+
     /**
      * {@inheritDoc}
      */
@@ -55,11 +85,12 @@ abstract class AbstractRange implements RangeInterface
     }
     
     /**
+     * Find the intersection
+     * 
      * @param   \E7\Utility\RangeInterface $range
-     * @param   string $class
-     * @return  \E7\Utility\class
+     * @return  \E7\Utility\RangeInterface|null
      */
-    public function getIntersection(RangeInterface $range, $class = null)
+    public function getIntersection(RangeInterface $range)
     {
         $from = null;
         $to = null;
@@ -79,15 +110,16 @@ abstract class AbstractRange implements RangeInterface
         }
         
         // check values
-        if (empty($from) || empty($to)) {
+        if (empty($from)
+            || empty($to)) {
             return null;
         }
 
         // return intersection range
-        return self::create($from, $to, $class);
+        return self::create($from, $to, $this->getOptions());
     }
     
-    public function getDifference(RangeInterface $range, $class = null)
+    public function getDifference(RangeInterface $range)
     {   
         if ($this->equals($range)) { /* $range is completely included */
             return [];
@@ -107,7 +139,7 @@ abstract class AbstractRange implements RangeInterface
                 $from = $range->getHigherTo();
                 $to = $this->getTo();
             }
-            return [self::create($from, $to, $class)];
+            return [self::create($from, $to, $this->getOptions())];
         }
         
         if ($this->getTo() == $range->getTo()) { /* same to, difference in the beginning */
@@ -118,7 +150,7 @@ abstract class AbstractRange implements RangeInterface
                 $from = $range->getFrom();
                 $to = $this->getLowerFrom();
             }
-            return [self::create($from, $to, $class)];
+            return [self::create($from, $to, $this->getOptions())];
         }
         
         
@@ -129,32 +161,41 @@ abstract class AbstractRange implements RangeInterface
         
     }
     
-    public function merge(RangeInterface $range, $class = null)
+    /**
+     * {inheritDoc}
+     */
+    public function merge(RangeInterface $range, $type = self::MERGE_TOUCH)
     {
-        if (!$this->checkTouch($range)) { /* impossible to merge */
+        if ((self::MERGE_OVERLAP == $type && !$this->checkCollision($range))
+            || (self::MERGE_TOUCH == $type && !$this->checkTouch($range))) {
+            /* impossible to merge */
             return null;
         }
-        
-        $from = min($this->getFrom(), $range->getFrom());
-        $to = max($this->getTo(), $range->getTo());
 
-        return self::create($from, $to, $class);
+        $mergedRange = self::create(
+            min($this->getFrom(), $range->getFrom()),
+            max($this->getTo(), $range->getTo()),
+            $this->getOptions()
+        );
+        
+        if (method_exists($mergedRange, 'afterMerge')) {
+            call_user_func([$mergedRange, 'afterMerge'], $this, $range);
+        }
+        
+        return $mergedRange;
     }
     
     /**
      * Factorymethod
      * 
-     * @param   mixed $from
-     * @param   mixed $to
-     * @param   string $class
-     * @return  \E7\Utility\RangeInterface 
+     * @param  mixed $from
+     * @param  mixed $to
+     * @param  array $options
+     * @return \E7\Utility\RangeInterface 
      */
-    public static function create($from, $to, $class = null)
+    public static function create()
     {
-        if (empty($class)) {
-            $class = \get_called_class();
-        }
-        return new $class($from, $to);
+        $reflection = new \ReflectionClass(\get_called_class());
+        return $reflection->newInstanceArgs(func_get_args());
     }
 }
-
