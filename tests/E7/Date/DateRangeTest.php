@@ -3,7 +3,8 @@
 namespace E7\Date;
 
 use PHPUnit\Framework\TestCase;
-use E7\Utility\RangeInterface;
+use E7\Utility\Range\RangeInterface;
+use E7\Utility\Range\MergeableRangeInterface;
 
 class DateRangeTest extends TestCase
 {
@@ -440,15 +441,11 @@ class DateRangeTest extends TestCase
      */
     public function testMerge(array $input, DateRange $expected = null)
     {
-        extract($input);
-        /* @var $range1 \E7\Date\DateRange */
-        /* @var $range2 \E7\Date\DateRange */
-        
-        // test both way, expect the same result
-        $result1 = $range1->merge($range2);
+        // test both ways, expect the same result
+        $result1 = $input['range1']->merge($input['range2'], $input['type']);
         $this->assertEquals($expected, $result1);
         
-        $result2 = $range2->merge($range1);
+        $result2 = $input['range2']->merge($input['range1'], $input['type']);
         $this->assertEquals($expected, $result2);
     }
     
@@ -458,53 +455,85 @@ class DateRangeTest extends TestCase
     public function providerMerge()
     {
         return [
-            [
-                /* range1 touches ranges2, expect merged range */
+            [  /* range1 touches ranges2, expect merged range with type=touch */
                 [
                     'range1' => new DateRange('2016-03-01', '2016-03-15'),
                     'range2' => new DateRange('2016-03-16', '2016-03-31'),
+                    'type' => MergeableRangeInterface::MERGE_TOUCH,
                 ],
                 new DateRange('2016-03-01', '2016-03-31'),
             ],
-            [
-                /* range2 touches ranges1, expect merged range */
+            [  /* range1 touches ranges2, expect null with type=overlap */
+                [
+                    'range1' => new DateRange('2016-03-01', '2016-03-15'),
+                    'range2' => new DateRange('2016-03-16', '2016-03-31'),
+                    'type' => MergeableRangeInterface::MERGE_OVERLAP
+                ],
+                null
+            ],
+            [  /* range2 touches ranges1, expect merged range with type=touch */
                 [
                     'range1' => new DateRange('2016-03-16', '2016-03-31'),
                     'range2' => new DateRange('2016-03-01', '2016-03-15'),
+                    'type' => MergeableRangeInterface::MERGE_TOUCH,
                 ],
                 new DateRange('2016-03-01', '2016-03-31'),
             ],
-            [
-                /* range1 overlaps ranges2, expect merged range */
+            [  /* range2 touches ranges1, expect null with type=overlap */
+                [
+                    'range1' => new DateRange('2016-03-16', '2016-03-31'),
+                    'range2' => new DateRange('2016-03-01', '2016-03-15'),
+                    'type' => MergeableRangeInterface::MERGE_OVERLAP,
+                ],
+                null,
+            ],
+            [  /* range1 overlaps ranges2, expect merged range with type=touch */
                 [
                     'range1' => new DateRange('2016-03-01', '2016-03-20'),
                     'range2' => new DateRange('2016-03-10', '2016-03-31'),
+                    'type' => MergeableRangeInterface::MERGE_TOUCH,
                 ],
                 new DateRange('2016-03-01', '2016-03-31'),
             ],
-            [
-                /* range2 touches ranges1, expect merged range */
+            [  /* range1 overlaps ranges2, expect merged range type=overlap */
                 [
-                    'range1' => new DateRange('2016-03-10', '2016-03-31'),
-                    'range2' => new DateRange('2016-03-01', '2016-03-20'),
+                    'range1' => new DateRange('2016-03-01', '2016-03-20'),
+                    'range2' => new DateRange('2016-03-10', '2016-03-31'),
+                    'type' => MergeableRangeInterface::MERGE_OVERLAP,
                 ],
                 new DateRange('2016-03-01', '2016-03-31'),
             ],
-            [
-                /* range1 is completely in ranges2, expect merged range */
+            [  /* range1 is completely in ranges2, expect merged range type=touch */
                 [
                     'range1' => new DateRange('2016-03-10', '2016-03-20'),
                     'range2' => new DateRange('2016-03-01', '2016-03-31'),
+                    'type' => MergeableRangeInterface::MERGE_TOUCH,
                 ],
                 new DateRange('2016-03-01', '2016-03-31'),
             ],
-            [
-                /* range2 is completely in ranges1, expect merged range */
+            [  /* range1 is completely in ranges2, expect merged range type=overlap */
                 [
-                    'range1' => new DateRange('2016-03-01', '2016-03-31'),
-                    'range2' => new DateRange('2016-03-10', '2016-03-20'),
+                    'range1' => new DateRange('2016-03-10', '2016-03-20'),
+                    'range2' => new DateRange('2016-03-01', '2016-03-31'),
+                    'type' => MergeableRangeInterface::MERGE_OVERLAP,
                 ],
                 new DateRange('2016-03-01', '2016-03-31'),
+            ],
+            [  /* range1 and ranges2 are completely different, expect null with type=touch */
+                [
+                    'range1' => new DateRange('2016-03-01', '2016-03-10'),
+                    'range2' => new DateRange('2016-03-20', '2016-03-30'),
+                    'type' => MergeableRangeInterface::MERGE_TOUCH,
+                ],
+                null,
+            ],
+            [  /* range1 and ranges2 are completely different, expect null with type=overlap */
+                [
+                    'range1' => new DateRange('2016-03-01', '2016-03-10'),
+                    'range2' => new DateRange('2016-03-20', '2016-03-30'),
+                    'type' => MergeableRangeInterface::MERGE_OVERLAP,
+                ],
+                null,
             ],
         ];
     }

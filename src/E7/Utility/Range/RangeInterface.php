@@ -1,6 +1,6 @@
 <?php
 
-namespace E7\Utility;
+namespace E7\Utility\Range;
 
 /**
  * Interface for ranges

@@ -2,8 +2,8 @@
 
 namespace E7\Date;
 
-use E7\Utility\RangeInterface;
-use E7\Utility\AbstractRange;
+use E7\Utility\Range\RangeInterface;
+use E7\Utility\Range\AbstractRange;
 
 /**
  * DateRange

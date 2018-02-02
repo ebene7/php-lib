@@ -2,8 +2,6 @@
 
 namespace E7\Utility\Range;
 
-use E7\Utility\RangeInterface;
-
 /**
  * Interface for mergeable ranges
  */

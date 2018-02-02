@@ -1,8 +1,6 @@
 <?php
 
-namespace E7\Utility;
-
-use E7\Utility\Range\MergeableRangeInterface;
+namespace E7\Utility\Range;
 
 /**
  * Baseclass for ranges
@@ -153,18 +151,13 @@ abstract class AbstractRange implements MergeableRangeInterface
             return [self::create($from, $to, $this->getOptions())];
         }
         
-        
-//        if ($this->getFrom() != $range->getFrom()
-//            && $this->getTo() != $range->getto()) {
-//            if ($)
-//        }
-        
+        return [];
     }
     
     /**
      * {inheritDoc}
      */
-    public function merge(RangeInterface $range, $type = self::MERGE_TOUCH)
+    public function merge(RangeInterface $range, $type = self::MERGE_OVERLAP)
     {
         if ((self::MERGE_OVERLAP == $type && !$this->checkCollision($range))
             || (self::MERGE_TOUCH == $type && !$this->checkTouch($range))) {

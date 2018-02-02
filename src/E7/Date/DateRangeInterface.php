@@ -2,7 +2,7 @@
 
 namespace E7\Date;
 
-use E7\Utility\RangeInterface;
+use E7\Utility\Range\RangeInterface;
 
 /**
  * Interface for date ranges

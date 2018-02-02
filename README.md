@@ -25,6 +25,7 @@ Iterator
 ## Changes
 
 ### 1.1.0
+* The namespace for AbstractRange has changed from \E7\Utility to \E7\Utility\Range
 * Merge calls now the method afterMerge($this, $range) to modify the payload
 * Remove $class parameter from AbstractRange::create(), add optional parameter $options instead
 * The values $lowerFrom and $higherTo now instanciate only once and stored in property in DateRange
