@@ -2,7 +2,9 @@
 
 namespace E7\Iterator;
 
-class PermutationIteratorTest extends \PHPUnit_Framework_TestCase
+use PHPUnit\Framework\TestCase;
+
+class PermutationIteratorTest extends TestCase
 {
     /**
      * @dataProvider    providerConstructor

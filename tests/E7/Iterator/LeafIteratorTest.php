@@ -2,7 +2,9 @@
 
 namespace E7\Iterator;
 
-class LeafIteratorTest extends \PHPUnit_Framework_TestCase
+use PHPUnit\Framework\TestCase;
+
+class LeafIteratorTest extends TestCase
 {
     public function testIterface()
     {
@@ -134,4 +136,3 @@ class Tag extends Entity {}
 class CategoryCollection extends \ArrayIterator {}
 class PostCollection extends \ArrayIterator {}
 class TagCollection extends \ArrayIterator {}
-

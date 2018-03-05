@@ -2,43 +2,66 @@
 
 namespace E7\Date;
 
-use E7\Utility\RangeInterface;
-use E7\Utility\AbstractRange;
+use E7\Utility\Range\RangeInterface;
+use E7\Utility\Range\AbstractRange;
 
+/**
+ * DateRange
+ */
 class DateRange extends AbstractRange implements DateRangeInterface
 {
-    /**
-     * @var \DateTimeInterface
-     */
+    /** @var \DateTimeInterface */
     private $from;
 
-    /**
-     * @var \DateTimeInterface
-     */
+    /** @var \DateTimeInterface */
+    private $lowerFrom;
+
+    /** @var \DateTimeInterface */
     private $to;
+
+    /** @var \DateTimeInterface */
+    private $higherTo;
 
     /**
      * Constructor
      * 
-     * @param   \DateTimeInterface|string $from
-     * @param   \DateTimeInterface|string $to
+     * @param \DateTimeInterface|string $from
+     * @param \DateTimeInterface|string $to
+     * @param array $options
      */
-    function __construct($from, $to)
+    function __construct($from, $to, array $options = [])
     {
         $from = $this->prepareDate($from, RangeInterface::TYPE_FROM);
         $to = $this->prepareDate($to, RangeInterface::TYPE_TO);
         
+        // prepare default options
+        $options = array_merge(
+            $options,
+            []
+        );
+        $this->setOptions($options);
+
+        // make sure "from" is always lower than "to"
         $this->from = min($from, $to);
         $this->to = max($from, $to);
+
+        $lowerFrom = clone $this->from;
+        $this->lowerFrom = $lowerFrom->modify('-1 day');
+
+        $higherTo = clone $this->to;
+        $this->higherTo = $higherTo->modify('+1 day');
     }
 
+    /**
+     * @return string
+     */
     public function __toString()
     {
         return '[' .  $this->getFrom()->format('Y-m-d') . '-' . $this->getTo()->format('Y-m-d') . ']';
     }
     
     /**
-     * @return  \DateTimeInterface
+     * @return \DateTimeInterface
      */
     public function getFrom()
     {
@@ -46,7 +69,7 @@ class DateRange extends AbstractRange implements DateRangeInterface
     }
 
     /**
-     * @return  \DateTimeInterface
+     * @return \DateTimeInterface
      */
     public function getTo()
     {
@@ -54,21 +77,39 @@ class DateRange extends AbstractRange implements DateRangeInterface
     }
 
     /**
-     * @return  \DateTimeInterface
+     * @return \DateTimeInterface
      */
     public function getLowerFrom()
     {
-        $from = clone $this->getFrom();
-        return $from->modify('-1 day');
+        return $this->lowerFrom;
     }
 
     /**
-     * @return  \DateTimeInterface
+     * @return \DateTimeInterface
      */
     public function getHigherTo()
     {
-        $to = clone $this->getTo();
-        return $to->modify('+1 day');
+        return $this->higherTo;
+    }
+
+    /**
+     * Get DateInterval
+     *
+     * @return \DateInterval
+     */
+    public function getInterval()
+    {
+        return $this->getTo()->diff($this->getFrom());
+    }
+
+    /**
+     * Get DatePeriod
+     *
+     * @return \DatePeriod
+     */
+    public function getPeriod()
+    {
+        return new \DatePeriod($this->getFrom(), new \DateInterval('P1D'), $this->getTo());
     }
     
     /**
@@ -81,15 +122,6 @@ class DateRange extends AbstractRange implements DateRangeInterface
             throw new \InvalidArgumentException('Value must be an instance of \DateTimeInterface');
         }
         return parent::contains($value);
-    }
-    
-    /**
-     * {@inheritDoc}
-     */
-    public function compareTo($object)
-    {
-        $comperator = new DateRangeComparator();
-        return $comperator->compare($this, $object);
     }
 
     /**

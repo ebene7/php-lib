@@ -2,7 +2,7 @@
 
 namespace E7\Iterator;
 
-abstract class AbstractIteratorDecorator implements \Iterator
+abstract class AbstractIteratorDecorator implements \OuterIterator
 {
     /**
      * @var \Iterator
@@ -17,6 +17,16 @@ abstract class AbstractIteratorDecorator implements \Iterator
     public function __construct(\Iterator $inner)
     {
         $this->inner = $inner;
+    }
+    
+    /**
+     * Get the inner iterator
+     * 
+     * @return \Iterator
+     */
+    public function getInnerIterator()
+    {
+        return $this->inner;
     }
     
     /**

@@ -2,16 +2,18 @@
 
 namespace E7\Date;
 
-use E7\Utility\RangeInterface;
+use PHPUnit\Framework\TestCase;
+use E7\Utility\Range\RangeInterface;
+use E7\Utility\Range\MergeableRangeInterface;
 
-class DateRangeTest extends \PHPUnit_Framework_TestCase
+class DateRangeTest extends TestCase
 {
     public function testInterfaces()
     {
         $range = new DateRange('now', 'now');
         $this->assertInstanceOf(RangeInterface::class, $range);
     }
-    
+
     /**
      * @dataProvider    providerConstructorAndFromToNormalisation
      * @param   array $parameters
@@ -25,7 +27,7 @@ class DateRangeTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($expected['from'], $range->getFrom()->format($format));
         $this->assertEquals($expected['to'], $range->getTo()->format($format));
     }
-    
+
     /**
      * @return  array
      */
@@ -61,6 +63,29 @@ class DateRangeTest extends \PHPUnit_Framework_TestCase
         ];
     }
 
+    public function testGetInterval()
+    {
+        $range = new DateRange('2018-01-01', '2018-01-11');
+        $interval = $range->getInterval();
+
+        $this->assertInstanceOf(\DateInterval::class, $interval);
+        $this->assertEquals(10, $interval->format('%a'));
+    }
+
+    public function testGetPeriod()
+    {
+        $range = new DateRange('2018-01-01', '2018-01-11');
+        $period = $range->getPeriod();
+
+        $count = 0;
+        foreach ($period as $day) {
+            $count++;
+        }
+
+        $this->assertInstanceOf(\DatePeriod::class, $period);
+        $this->assertEquals(11, $count);
+    }
+
     /**
      * @dataProvider    providerContains
      * @param   array $input
@@ -71,9 +96,9 @@ class DateRangeTest extends \PHPUnit_Framework_TestCase
         extract($input);
         /* @var $range \E7\Date\DateRange */
         /* @var $value \DateTime */
-        
+
         $result = $range->contains($value);
-        
+
         $this->assertInternalType('boolean', $result);
         $this->assertEquals($expected, $result);
     }
@@ -84,7 +109,7 @@ class DateRangeTest extends \PHPUnit_Framework_TestCase
     public function providerContains()
     {
         $range = new DateRange('2016-03-01', '2016-03-31');
-        
+
         return [
             /* one day before, expect false */
             [['range' => $range, 'value' => '2016-02-29'], false],
@@ -103,7 +128,7 @@ class DateRangeTest extends \PHPUnit_Framework_TestCase
             [['range' => $range, 'value' => new \DateTime('2016-04-01')], false],
         ];
     }
-    
+
 //    public function testEquals()
 //    {
 //    }
@@ -366,20 +391,20 @@ class DateRangeTest extends \PHPUnit_Framework_TestCase
      * @param   array $input
      * @param   array|null $expected
      */
-    public function testGetDifference()
-    {
-        $range1 = new DateRange('2016-03-01', '2016-03-31');
-        $range2 = new DateRange('2016-03-11', '2016-03-15');
-                
-        $result = $range1->getDifference($range2);
-       
-//        echo "\nIN $range1 $range2\n";
-//        foreach ($result as $range) {
-//            echo "$range\n";
-//        }
-        
-        
-    }
+//    public function testGetDifference()
+//    {
+//        $range1 = new DateRange('2016-03-01', '2016-03-31');
+//        $range2 = new DateRange('2016-03-11', '2016-03-15');
+//                
+//        $result = $range1->getDifference($range2);
+//       
+////        echo "\nIN $range1 $range2\n";
+////        foreach ($result as $range) {
+////            echo "$range\n";
+////        }
+//        
+//        
+//    }
     
     /**
      * @return  array
@@ -416,15 +441,11 @@ class DateRangeTest extends \PHPUnit_Framework_TestCase
      */
     public function testMerge(array $input, DateRange $expected = null)
     {
-        extract($input);
-        /* @var $range1 \E7\Date\DateRange */
-        /* @var $range2 \E7\Date\DateRange */
-        
-        // test both way, expect the same result
-        $result1 = $range1->merge($range2);
+        // test both ways, expect the same result
+        $result1 = $input['range1']->merge($input['range2'], $input['type']);
         $this->assertEquals($expected, $result1);
         
-        $result2 = $range2->merge($range1);
+        $result2 = $input['range2']->merge($input['range1'], $input['type']);
         $this->assertEquals($expected, $result2);
     }
     
@@ -434,53 +455,85 @@ class DateRangeTest extends \PHPUnit_Framework_TestCase
     public function providerMerge()
     {
         return [
-            [
-                /* range1 touches ranges2, expect merged range */
+            [  /* range1 touches ranges2, expect merged range with type=touch */
                 [
                     'range1' => new DateRange('2016-03-01', '2016-03-15'),
                     'range2' => new DateRange('2016-03-16', '2016-03-31'),
+                    'type' => MergeableRangeInterface::MERGE_TOUCH,
                 ],
                 new DateRange('2016-03-01', '2016-03-31'),
             ],
-            [
-                /* range2 touches ranges1, expect merged range */
+            [  /* range1 touches ranges2, expect null with type=overlap */
+                [
+                    'range1' => new DateRange('2016-03-01', '2016-03-15'),
+                    'range2' => new DateRange('2016-03-16', '2016-03-31'),
+                    'type' => MergeableRangeInterface::MERGE_OVERLAP
+                ],
+                null
+            ],
+            [  /* range2 touches ranges1, expect merged range with type=touch */
                 [
                     'range1' => new DateRange('2016-03-16', '2016-03-31'),
                     'range2' => new DateRange('2016-03-01', '2016-03-15'),
+                    'type' => MergeableRangeInterface::MERGE_TOUCH,
                 ],
                 new DateRange('2016-03-01', '2016-03-31'),
             ],
-            [
-                /* range1 overlaps ranges2, expect merged range */
+            [  /* range2 touches ranges1, expect null with type=overlap */
+                [
+                    'range1' => new DateRange('2016-03-16', '2016-03-31'),
+                    'range2' => new DateRange('2016-03-01', '2016-03-15'),
+                    'type' => MergeableRangeInterface::MERGE_OVERLAP,
+                ],
+                null,
+            ],
+            [  /* range1 overlaps ranges2, expect merged range with type=touch */
                 [
                     'range1' => new DateRange('2016-03-01', '2016-03-20'),
                     'range2' => new DateRange('2016-03-10', '2016-03-31'),
+                    'type' => MergeableRangeInterface::MERGE_TOUCH,
                 ],
                 new DateRange('2016-03-01', '2016-03-31'),
             ],
-            [
-                /* range2 touches ranges1, expect merged range */
+            [  /* range1 overlaps ranges2, expect merged range type=overlap */
                 [
-                    'range1' => new DateRange('2016-03-10', '2016-03-31'),
-                    'range2' => new DateRange('2016-03-01', '2016-03-20'),
+                    'range1' => new DateRange('2016-03-01', '2016-03-20'),
+                    'range2' => new DateRange('2016-03-10', '2016-03-31'),
+                    'type' => MergeableRangeInterface::MERGE_OVERLAP,
                 ],
                 new DateRange('2016-03-01', '2016-03-31'),
             ],
-            [
-                /* range1 is completely in ranges2, expect merged range */
+            [  /* range1 is completely in ranges2, expect merged range type=touch */
                 [
                     'range1' => new DateRange('2016-03-10', '2016-03-20'),
                     'range2' => new DateRange('2016-03-01', '2016-03-31'),
+                    'type' => MergeableRangeInterface::MERGE_TOUCH,
                 ],
                 new DateRange('2016-03-01', '2016-03-31'),
             ],
-            [
-                /* range2 is completely in ranges1, expect merged range */
+            [  /* range1 is completely in ranges2, expect merged range type=overlap */
                 [
-                    'range1' => new DateRange('2016-03-01', '2016-03-31'),
-                    'range2' => new DateRange('2016-03-10', '2016-03-20'),
+                    'range1' => new DateRange('2016-03-10', '2016-03-20'),
+                    'range2' => new DateRange('2016-03-01', '2016-03-31'),
+                    'type' => MergeableRangeInterface::MERGE_OVERLAP,
                 ],
                 new DateRange('2016-03-01', '2016-03-31'),
+            ],
+            [  /* range1 and ranges2 are completely different, expect null with type=touch */
+                [
+                    'range1' => new DateRange('2016-03-01', '2016-03-10'),
+                    'range2' => new DateRange('2016-03-20', '2016-03-30'),
+                    'type' => MergeableRangeInterface::MERGE_TOUCH,
+                ],
+                null,
+            ],
+            [  /* range1 and ranges2 are completely different, expect null with type=overlap */
+                [
+                    'range1' => new DateRange('2016-03-01', '2016-03-10'),
+                    'range2' => new DateRange('2016-03-20', '2016-03-30'),
+                    'type' => MergeableRangeInterface::MERGE_OVERLAP,
+                ],
+                null,
             ],
         ];
     }
@@ -489,11 +542,82 @@ class DateRangeTest extends \PHPUnit_Framework_TestCase
     {
         $from = '2016-03-01';
         $to = '2016-03-31';
+        $value = 42;
+        $options = ['foo' => 'bar'];
         
-        $range = DateRange::create($from, $to);
+        $range = TestDateRange::create($from, $to, $value, $options);
         
-        $this->assertInstanceOf(DateRange::class, $range);
+        $this->assertInstanceOf(TestDateRange::class, $range);
         $this->assertEquals($from, $range->getFrom()->format('Y-m-d'));
         $this->assertEquals($to, $range->getTo()->format('Y-m-d'));
+        $this->assertEquals($value, $range->getValue());
+        $this->assertEquals($options, $range->getOptions());
+    }
+    
+    public function testAfterMergeCallback()
+    {
+        $range1 = new TestDateRange('2018-01-10', '2018-01-20', 5);
+        $range2 = new TestDateRange('2018-01-15', '2018-01-30', 10);
+        
+        $mergedRange = $range1->merge($range2);
+        
+        $this->assertNotSame($range1, $mergedRange);
+        $this->assertNotSame($range2, $mergedRange);
+        $this->assertInstanceOf(get_class($range1), $mergedRange);
+        $this->assertEquals('2018-01-10', $mergedRange->getFrom()->format('Y-m-d'));
+        $this->assertEquals('2018-01-30', $mergedRange->getTo()->format('Y-m-d'));
+        $this->assertEquals(15, $mergedRange->getValue());
+    }
+    
+}
+
+// classes for test
+class TestDateRange extends DateRange
+{
+    /** @var mixed */
+    private $value;
+    
+    /**
+     * Constructor
+     * 
+     * @param \DateTimeInterface $from
+     * @param \DateTimeInterface $to
+     * @param mixed $value
+     * @param array $options
+     */
+    public function __construct($from, $to, $value, array $options = [])
+    {
+        parent::__construct($from, $to, $options);
+        $this->value = $value;
+    }
+
+    /**
+     * Set value
+     * 
+     * @param  mixed $value
+     * @return TestDateRange
+     */
+    public function setValue($value)
+    {
+        $this->value = $value;
+        return $this;
+    }
+    
+    /**
+     * Get value
+     * 
+     * @return mixed
+     */
+    public function getValue()
+    {
+        return $this->value;
+    }
+        
+    /**
+     * {@inheritDoc}
+     */
+    protected function afterMerge($range1, $range2)
+    {
+        $this->value = $range1->value + $range2->value;
     }
 }
