@@ -30,6 +30,8 @@ Iterator
 * Remove constructor from DateRange and implement it in AbstractRange
 * Move getter for from, to, lowerFrom, higherTo from DateRange into AbstractRange
 * Add RangeCompiler and a range collection
+* Add CompactCompiler for merging ranges
+* Add NumberRange
 
 ### 1.1.0
 * The namespace for AbstractRange has changed from \E7\Utility to \E7\Utility\Range
