@@ -14,6 +14,15 @@ class DateRangeTest extends TestCase
         $this->assertInstanceOf(RangeInterface::class, $range);
     }
 
+    public function testConstructorWithSingleParameter()
+    {
+        $date = new \DateTime('2017-03-22');
+        $range = new DateRange($date);
+
+        $this->assertEquals($date, $range->getFrom());
+        $this->assertEquals($date, $range->getTo());
+    }
+
     /**
      * @dataProvider    providerConstructorAndFromToNormalisation
      * @param   array $parameters
@@ -22,8 +31,8 @@ class DateRangeTest extends TestCase
     public function testConstructorAndFromToNormalisation(array $parameters, array $expected)
     {
         $range = new DateRange($parameters['from'], $parameters['to']);
-        $format = 'Y-m-d H:i:s'; 
-        
+        $format = 'Y-m-d H:i:s';
+
         $this->assertEquals($expected['from'], $range->getFrom()->format($format));
         $this->assertEquals($expected['to'], $range->getTo()->format($format));
     }
@@ -132,7 +141,7 @@ class DateRangeTest extends TestCase
 //    public function testEquals()
 //    {
 //    }
-    
+
     /**
      * @dataProvider    providerCheckCollision
      * @param   array $input
@@ -143,17 +152,17 @@ class DateRangeTest extends TestCase
         extract($input);
         /* @var $range1 \E7\Date\DateRange */
         /* @var $range2 \E7\Date\DateRange */
-        
+
         // test both ways, expect the same result
         $result1 = $range1->checkCollision($range2);
         $this->assertInternalType('boolean', $result1);
         $this->assertEquals($expected, $result1, $range1 . ' ' . $range2);
-        
+
         $result2 = $range2->checkCollision($range1);
         $this->assertInternalType('boolean', $result2);
         $this->assertEquals($expected, $result2, $range1 . ' ' . $range2);
     }
-    
+
     /**
      * @return  array
      */
@@ -221,17 +230,17 @@ class DateRangeTest extends TestCase
         extract($input);
         /* @var $range1 \E7\Date\DateRange */
         /* @var $range2 \E7\Date\DateRange */
-        
+
         // test both ways, expect the same result
         $result1 = $range1->checkTouch($range2);
         $this->assertInternalType('boolean', $result1);
         $this->assertEquals((bool) $expected, $result1);
-        
+
         $result2 = $range2->checkTouch($range1);
         $this->assertInternalType('boolean', $result2);
         $this->assertEquals((bool) $expected, $result2);
     }
-    
+
     /**
      * @return  array
      */
@@ -304,7 +313,7 @@ class DateRangeTest extends TestCase
             ],
         ];
     }
-    
+
     /**
      * @dataProvider    providerGetIntersection
      * @param   array $input
@@ -315,15 +324,15 @@ class DateRangeTest extends TestCase
         extract($input);
         /* @var $range1 \E7\Date\DateRange */
         /* @var $range2 \E7\Date\DateRange */
-        
+
         // test both way, expect the same result
         $result1 = $range1->getIntersection($range2);
         $this->assertEquals($expected, $result1);
-        
+
         $result2 = $range2->getIntersection($range1);
         $this->assertEquals($expected, $result2);
     }
-    
+
     public function providerGetIntersection()
     {
         return [
@@ -385,7 +394,7 @@ class DateRangeTest extends TestCase
             ]
         ];
     }
-    
+
     /**
      * @ dataProvider    providerGetDifference
      * @param   array $input
@@ -395,17 +404,17 @@ class DateRangeTest extends TestCase
 //    {
 //        $range1 = new DateRange('2016-03-01', '2016-03-31');
 //        $range2 = new DateRange('2016-03-11', '2016-03-15');
-//                
+//
 //        $result = $range1->getDifference($range2);
-//       
+//
 ////        echo "\nIN $range1 $range2\n";
 ////        foreach ($result as $range) {
 ////            echo "$range\n";
 ////        }
-//        
-//        
+//
+//
 //    }
-    
+
     /**
      * @return  array
      */
@@ -433,7 +442,7 @@ class DateRangeTest extends TestCase
 //            ],
 //        ];
 //    }
-    
+
     /**
      * @dataProvider    providerMerge
      * @param   array $input
@@ -444,11 +453,11 @@ class DateRangeTest extends TestCase
         // test both ways, expect the same result
         $result1 = $input['range1']->merge($input['range2'], $input['type']);
         $this->assertEquals($expected, $result1);
-        
+
         $result2 = $input['range2']->merge($input['range1'], $input['type']);
         $this->assertEquals($expected, $result2);
     }
-    
+
     /**
      * @return  array
      */
@@ -537,30 +546,30 @@ class DateRangeTest extends TestCase
             ],
         ];
     }
-    
+
     public function testStaticCreate()
     {
         $from = '2016-03-01';
         $to = '2016-03-31';
         $value = 42;
         $options = ['foo' => 'bar'];
-        
+
         $range = TestDateRange::create($from, $to, $value, $options);
-        
+
         $this->assertInstanceOf(TestDateRange::class, $range);
         $this->assertEquals($from, $range->getFrom()->format('Y-m-d'));
         $this->assertEquals($to, $range->getTo()->format('Y-m-d'));
         $this->assertEquals($value, $range->getValue());
         $this->assertEquals($options, $range->getOptions());
     }
-    
+
     public function testAfterMergeCallback()
     {
         $range1 = new TestDateRange('2018-01-10', '2018-01-20', 5);
         $range2 = new TestDateRange('2018-01-15', '2018-01-30', 10);
-        
+
         $mergedRange = $range1->merge($range2);
-        
+
         $this->assertNotSame($range1, $mergedRange);
         $this->assertNotSame($range2, $mergedRange);
         $this->assertInstanceOf(get_class($range1), $mergedRange);
@@ -568,7 +577,7 @@ class DateRangeTest extends TestCase
         $this->assertEquals('2018-01-30', $mergedRange->getTo()->format('Y-m-d'));
         $this->assertEquals(15, $mergedRange->getValue());
     }
-    
+
 }
 
 // classes for test
@@ -576,10 +585,10 @@ class TestDateRange extends DateRange
 {
     /** @var mixed */
     private $value;
-    
+
     /**
      * Constructor
-     * 
+     *
      * @param \DateTimeInterface $from
      * @param \DateTimeInterface $to
      * @param mixed $value
@@ -593,7 +602,7 @@ class TestDateRange extends DateRange
 
     /**
      * Set value
-     * 
+     *
      * @param  mixed $value
      * @return TestDateRange
      */
@@ -602,17 +611,17 @@ class TestDateRange extends DateRange
         $this->value = $value;
         return $this;
     }
-    
+
     /**
      * Get value
-     * 
+     *
      * @return mixed
      */
     public function getValue()
     {
         return $this->value;
     }
-        
+
     /**
      * {@inheritDoc}
      */

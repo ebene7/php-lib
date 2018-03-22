@@ -45,6 +45,14 @@ abstract class AbstractRange implements MergeableRangeInterface
     }
 
     /**
+     * @return string
+     */
+    public function __toString()
+    {
+        return '[' . $this->getFrom() . '-' . $this->getTo() . ']';
+    }
+
+    /**
      * Get from value
      *
      * @return mixed

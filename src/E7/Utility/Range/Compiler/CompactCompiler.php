@@ -2,6 +2,8 @@
 
 namespace E7\Utility\Range\Compiler;
 
+use E7\Utility\Range\MergeableRangeInterface;
+
 class CompactCompiler extends AbstractCompiler
 {
     /** @var integer */
@@ -12,9 +14,7 @@ class CompactCompiler extends AbstractCompiler
      */
     public function compile($ranges)
     {
-        $running = true;
-        $max = 0;
-        $loop = 0;
+        $loops = 0;
 
         do {
             $tmpRanges = [];
@@ -36,13 +36,9 @@ class CompactCompiler extends AbstractCompiler
                 }
             }
 
-            if (!$action || ($max != 0 && $loop >= $max)) {
-                $running = false;
-            }
-
             $ranges = $tmpRanges;
-            $loop++;
-        } while ($running);
+            $loops++;
+        } while ($action && !($this->maxIterations != 0 && $loops >= $this->maxIterations));
 
         return $tmpRanges;
     }

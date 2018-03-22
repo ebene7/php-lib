@@ -20,7 +20,7 @@ class Collection extends WalkableIterator
      *
      * @param   array|\ArrayIterator $ranges
      */
-    public function __construct($ranges)
+    public function __construct($ranges = [])
     {
         if (is_array($ranges)) {
             $ranges = new \ArrayIterator($ranges);
