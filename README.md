@@ -24,6 +24,13 @@ Iterator
 
 ## Changes
 
+### 1.2.0
+* Bugfix: Change wrong variablename in AbstractRange::checkTouch()
+* Add constants TYPE_LOWER_FROM and TYPE_HIGHER_TO to RangeInterface
+* Remove constructor from DateRange and implement it in AbstractRange
+* Move getter for from, to, lowerFrom, higherTo from DateRange into AbstractRange
+* Add RangeCompiler and a range collection
+
 ### 1.1.0
 * The namespace for AbstractRange has changed from \E7\Utility to \E7\Utility\Range
 * Merge calls now the method afterMerge($this, $range) to modify the payload
