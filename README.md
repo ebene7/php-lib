@@ -21,6 +21,7 @@ Iterator
 * PermutationIterator
 * ProxyCallIterator
 * WalkableIterator
+* ParallelIterator
 
 ## Changes
 
@@ -32,6 +33,7 @@ Iterator
 * Add RangeCompiler and a range collection
 * Add CompactCompiler for merging ranges
 * Add NumberRange
+* Add ParallelIterator
 
 ### 1.1.0
 * The namespace for AbstractRange has changed from \E7\Utility to \E7\Utility\Range
